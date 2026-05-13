@@ -34,7 +34,7 @@ export default function AuthPage() {
       <div className="w-full max-w-[400px] space-y-8">
         <div className="text-center space-y-4">
           <div className="inline-block p-4 bg-white rounded-[2.5rem] shadow-xl shadow-blue-100/50 mb-2">
-            <MingMascot mood={isLogin ? "happy" : "chill"} />
+            <MingMascot action={isLogin ? 'idle' : 'sleeping'} />
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">
             {isLogin ? 'Welcome Back' : 'Create Account'}

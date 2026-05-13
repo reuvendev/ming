@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@/context/UserContext';
+import { useUser } from '@/context/userContext';
 import { updateDailyGoal } from '@/lib/db';
 import StudyRoom from "@/components/timer/StudyRoom";
 import MingMascot from "@/components/pet/MingMascot";
@@ -66,7 +66,7 @@ export default function Dashboard() {
              </div>
              
           </section>
-          
+
           {/* Growth Progress */}
           <section className="bg-white rounded-[3rem] p-10 shadow-sm border border-slate-100/50">
             <div className="flex justify-between items-center mb-8 px-2">

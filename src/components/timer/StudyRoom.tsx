@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { addStudyXP } from '@/lib/db';
-import { useUser } from '@/context/UserContext';
+import { useUser } from '@/context/userContext';
 
 interface StudyRoomProps {
   onStatusChange: (isRunning: boolean) => void;

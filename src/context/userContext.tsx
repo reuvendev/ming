@@ -1,40 +1,57 @@
 'use client';
-import { createContext, useContext, useEffect, useState } from 'react';
-import { auth, db } from '@/lib/firebase';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { calculateLevel } from '@/lib/gameLogic';
 
-const UserContext = createContext<any>(null);
+import React, { createContext, useContext, useState } from 'react';
+
+interface UserContextType {
+  userStats: {
+    level: number;
+    xp: number;
+    requiredXp: number;
+  };
+  addXp: (amount: number) => void;
+}
+
+const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [userData, setUserData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [userStats, setUserStats] = useState({
+    level: 1,
+    xp: 0,
+    requiredXp: 100,
+  });
 
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        const userRef = doc(db, "users", user.uid);
-        return onSnapshot(userRef, (doc) => {
-          if (doc.exists()) {
-            const data = doc.data();
-            const levels = calculateLevel(data.xp || 0);
-            setUserData({ ...data, ...levels, uid: user.uid });
-          }
-          setLoading(false);
-        });
-      } else {
-        setUserData(null);
-        setLoading(false);
+  const addXp = (amount: number) => {
+    setUserStats((prev) => {
+      let newXp = prev.xp + amount;
+      let newLevel = prev.level;
+      let currentRequiredXp = prev.requiredXp;
+
+      while (newXp >= currentRequiredXp) {
+        newXp -= currentRequiredXp;
+        newLevel += 1;
+        currentRequiredXp = Math.floor(currentRequiredXp * 1.2);
+        console.log(`🎉 Level up! Now Level ${newLevel}`);
       }
+
+      return {
+        level: newLevel,
+        xp: newXp,
+        requiredXp: currentRequiredXp,
+      };
     });
-    return () => unsubscribe();
-  }, []);
+  };
 
   return (
-    <UserContext.Provider value={{ userData, loading }}>
+    <UserContext.Provider value={{ userStats, addXp }}>
       {children}
     </UserContext.Provider>
   );
 }
 
-export const useUser = () => useContext(UserContext);
+export function useUser() {
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error('useUser must be used within a UserProvider');
+  }
+  return context;
+}

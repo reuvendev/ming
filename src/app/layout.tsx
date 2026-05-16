@@ -1,19 +1,20 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import { UserProvider } from "@/context/userContext";
-import { Plus_Jakarta_Sans } from 'next/font/google';
+import React from 'react';
+import { UserProvider } from '@/context/UserContext';
+import './globals.css';
 
-const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'] });
-
-export const metadata: Metadata = {
-  title: "Ming | Focus with your Puspin",
-  description: "Gamified study tracker with a Filipino twist",
+export const metadata = {
+  title: 'Ming Focus Studio',
+  description: 'Study tracking and focus app',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body className={`${jakarta.className} bg-[#F1F5F9] text-slate-900 antialiased`}>
+      <body>
         <UserProvider>
           {children}
         </UserProvider>

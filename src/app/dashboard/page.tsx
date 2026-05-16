@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@/context/userContext';
+import { useUser } from '@/context/UserContext';
 import { updateDailyGoal } from '@/lib/db';
 import StudyRoom from "@/components/timer/StudyRoom";
-import MingMascot from "@/components/pet/MingMascot";
+import MingMascot from '@/components/pet/MingMascot';
 import toast, { Toaster } from 'react-hot-toast';
 
 export default function Dashboard() {

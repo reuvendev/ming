@@ -1,52 +1,107 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { addStudyXP } from '@/lib/db';
-import { useUser } from '@/context/userContext';
+import React, { useState, useEffect } from 'react';
+import { useUser } from '@/context/UserContext';
+import MingMascot from '@/components/pet/MingMascot';
 
-interface StudyRoomProps {
-  onStatusChange: (isRunning: boolean) => void;
-}
-
-export default function StudyRoom({ onStatusChange }: StudyRoomProps) {
-  const { userData } = useUser();
-  const [seconds, setSeconds] = useState(1500); // 25 mins
-  const [isActive, setIsActive] = useState(false);
+export default function StudyRoom() {
+  const { addXp, userStats } = useUser();
+  
+  const FOCUS_TIME = 25 * 60;
+  const [timeLeft, setTimeLeft] = useState(FOCUS_TIME);
+  const [isRunning, setIsRunning] = useState(false);
+  const [mascotAction, setMascotAction] = useState<'idle' | 'studying' | 'sleeping'>('idle');
+  const [hasLeveledUp, setHasLeveledUp] = useState(false);
 
   useEffect(() => {
-    let interval: any = null;
-    if (isActive && seconds > 0) {
-      interval = setInterval(() => {
-        setSeconds((s) => s - 1);
-      }, 1000);
-    } else if (seconds === 0) {
-      setIsActive(false);
-      onStatusChange(false);
-      if (userData?.uid) addStudyXP(userData.uid, 25);
-    }
-    return () => clearInterval(interval);
-  }, [isActive, seconds, userData, onStatusChange]);
+    let interval: NodeJS.Timeout | null = null;
 
-  const toggleTimer = () => {
-    const nextState = !isActive;
-    setIsActive(nextState);
-    onStatusChange(nextState); 
+    if (isRunning && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isRunning, timeLeft]);
+
+  useEffect(() => {
+    if (timeLeft > 0 || !isRunning) return;
+    if (hasLeveledUp) return;
+
+    setHasLeveledUp(true);
+    setIsRunning(false);
+    setMascotAction('idle');
+
+    console.log("Timer finished! Awarding 25 XP.");
+    addXp(25);
+
+  }, [timeLeft, isRunning, hasLeveledUp, addXp]);
+
+  const startTimer = () => {
+    setIsRunning(true);
+    setMascotAction('studying');
+  };
+
+  const pauseTimer = () => {
+    setIsRunning(false);
+    setMascotAction('idle');
+  };
+
+  const resetTimer = () => {
+    setIsRunning(false);
+    setTimeLeft(FOCUS_TIME);
+    setHasLeveledUp(false);
+    setMascotAction('idle');
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
-    <div className="flex flex-col items-center w-full">
-      <div className="text-8xl font-black text-slate-900 mb-10 tracking-tighter tabular-nums">
-        {Math.floor(seconds / 60)}:{(seconds % 60).toString().padStart(2, '0')}
+    <div className="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-2xl shadow-md max-w-md mx-auto space-y-6">
+      <div className="text-center">
+        <h2 className="text-xl font-bold text-slate-800">Level {userStats.level}</h2>
+        <p className="text-sm text-slate-500">XP: {userStats.xp} / {userStats.requiredXp}</p>
       </div>
-      <button 
-        onClick={toggleTimer}
-        className={`w-full max-w-xs py-5 rounded-[2rem] font-black text-lg transition-all transform active:scale-95 shadow-2xl
-          ${isActive 
-            ? 'bg-rose-500 shadow-rose-200 text-white' 
-            : 'bg-slate-900 shadow-slate-200 text-white hover:bg-blue-600'}`}
-      >
-        {isActive ? 'Pause' : 'Start'}
-      </button>
+
+      <div className="p-4 bg-white rounded-full shadow-inner">
+        <MingMascot action={mascotAction} />
+      </div>
+
+      <div className="text-6xl font-mono font-bold text-slate-900 tracking-wider">
+        {formatTime(timeLeft)}
+      </div>
+
+      <div className="flex space-x-4">
+        {!isRunning ? (
+          <button 
+            onClick={startTimer}
+            disabled={timeLeft === 0}
+            className="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-300 text-white font-medium rounded-lg shadow transition"
+          >
+            Start
+          </button>
+        ) : (
+          <button 
+            onClick={pauseTimer}
+            className="px-6 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg shadow transition"
+          >
+            Pause
+          </button>
+        )}
+        <button 
+          onClick={resetTimer}
+          className="px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-lg shadow transition"
+        >
+          Reset
+        </button>
+      </div>
     </div>
   );
 }
